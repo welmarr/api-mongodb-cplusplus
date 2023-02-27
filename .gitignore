@@ -1,0 +1,11 @@
+# Common build directories
+build*/
+
+# vcpkg repository
+vcpkg_installed
+
+
+# Visual Studio Code
+.vscode/
+.cache/
+!.gitignore
