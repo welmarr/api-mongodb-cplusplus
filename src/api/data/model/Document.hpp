@@ -14,16 +14,17 @@ namespace App
     namespace Database
     {
 
-      namespace Json
+      namespace MODEL
       {
-        class JsonDocument : public oatpp::DTO
+        class Document : public oatpp::DTO
         {
 
-          DTO_INIT(JsonDocument, DTO)
+          DTO_INIT(Document, DTO)
 
           DTO_FIELD(String, user_id);
           DTO_FIELD(String, created_at);
           DTO_FIELD(String, updated_at);
+          DTO_FIELD(String, deleted_at);
           DTO_FIELD(Any, Data);
         };
       }

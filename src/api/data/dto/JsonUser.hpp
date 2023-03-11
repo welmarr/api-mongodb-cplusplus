@@ -11,23 +11,20 @@ namespace App
   namespace Data
   {
 
-    namespace Database
+    namespace Json
     {
-
-      namespace Json
+      class JsonUser : public oatpp::DTO
       {
-        class JsonDocument : public oatpp::DTO
-        {
 
-          DTO_INIT(JsonDocument, DTO)
+        DTO_INIT(JsonUser, DTO)
 
-          DTO_FIELD(String, user_id);
-          DTO_FIELD(String, created_at);
-          DTO_FIELD(String, updated_at);
-          DTO_FIELD(Any, Data);
-        };
-      }
+        DTO_FIELD(String, username);
+        DTO_FIELD(Boolean, active);
+        DTO_FIELD(String, role);
+        DTO_FIELD(String, created_at);
+      };
     }
+
   }
 }
 

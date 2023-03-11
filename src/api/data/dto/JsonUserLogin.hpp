@@ -16,15 +16,13 @@ namespace App
 
       namespace Json
       {
-        class JsonDocument : public oatpp::DTO
+        class JsonUserLogin : public oatpp::DTO
         {
 
-          DTO_INIT(JsonDocument, DTO)
+          DTO_INIT(JsonUserLogin, DTO)
 
-          DTO_FIELD(String, user_id);
-          DTO_FIELD(String, created_at);
-          DTO_FIELD(String, updated_at);
-          DTO_FIELD(Any, Data);
+          DTO_FIELD(String, username);
+          DTO_FIELD(String, password);
         };
       }
     }

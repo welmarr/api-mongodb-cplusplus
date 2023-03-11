@@ -1,100 +1,88 @@
-cmake_minimum_required(VERSION 3.16)
-project(my-rest-api)
+cmake_minimum_required(VERSION 3.1)
 
-set(CMAKE_CXX_STANDARD 17)
+set(project_name api-moc-plusplus)
 
-# Find and link restbed
-find_package(restbed CONFIG REQUIRED)
-include_directories(${restbed_INCLUDE_DIRS})
-link_libraries(${restbed_LIBRARIES})
+project(${project_name})
 
-# Find and link MongoDB C++ driver
-find_package(libmongocxx REQUIRED)
-include_directories(${libmongocxx_INCLUDE_DIRS})
-link_libraries(${libmongocxx_LIBRARIES})
+set(CMAKE_CXX_STANDARD 14)
 
-# Find and link nlohmann-json
-find_package(nlohmann_json REQUIRED)
-include_directories(${nlohmann_json_INCLUDE_DIRS})
-link_libraries(${nlohmann_json_LIBRARIES})
+add_library(${project_name}-lib
+        src/api/data/Connexion.cpp
+        src/api/data/Connexion.hpp
+        src/api/data/model/User.hpp
+        src/api/data/dto/JsonUser.hpp
+        src/api/data/dto/JsonUserLogin.hpp
+        src/api/data/repository/UserRepository.cpp
+        src/api/data/repository/UserRepository.hpp
+        src/api/utility/SwaggerDoc.hpp
+        src/api/utility/UUID.hpp
+        src/api/controllers/UserController.hpp
+        src/api/AppConfig.hpp)
 
-# Find and link re2
-find_package(RE2 REQUIRED)
-include_directories(${RE2_INCLUDE_DIRS})
-link_libraries(${RE2_LIBRARIES})
+###################################################################
+# Find mongocxx
 
-# Find and link gtest
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
-link_libraries(${GTEST_BOTH_LIBRARIES})
+find_package(mongocxx REQUIRED)
 
-# Add source files to build executable
-add_executable(my-rest-api
-    src/main.cpp
-    src/api/error.cpp
-    src/api/request_handler.cpp
-    src/api/route.cpp
-    src/api/router.cpp
-    src/api/singleton_mongo_client.cpp
-    src/models/document.cpp
+message("LIBBSONCXX_INCLUDE_DIRS=${LIBBSONCXX_INCLUDE_DIRS}")
+message("LIBBSONCXX_LIBRARIES=${LIBBSONCXX_LIBRARIES}")
+
+message("LIBMONGOCXX_INCLUDE_DIRS=${LIBMONGOCXX_INCLUDE_DIRS}")
+message("LIBMONGOCXX_LIBRARIES=${LIBMONGOCXX_LIBRARIES}")
+
+###################################################################
+
+find_package(oatpp          1.3.0 REQUIRED)
+find_package(oatpp-swagger  1.3.0 REQUIRED)
+find_package(oatpp-mongo    1.3.0 REQUIRED)
+
+## include directories
+
+target_include_directories(${project_name}-lib
+        PUBLIC src
 )
 
-# Add include directories
-target_include_directories(my-rest-api PRIVATE
-    include/api
-    include/models
+## link libs
+
+target_link_libraries(${project_name}-lib
+        PUBLIC oatpp::oatpp
+        PUBLIC oatpp::oatpp-swagger
+        PUBLIC oatpp::oatpp-mongo
 )
 
-# Set compile options
-target_compile_options(my-rest-api PRIVATE
-    -Wall
-    -Wextra
-    -Wpedantic
+if (TARGET mongo::mongocxx_shared)
+    target_link_libraries(${project_name}-lib
+            PUBLIC mongo::mongocxx_shared
+    )
+    message("mongo::mongocxx_shared is used")
+elseif(TARGET mongo::mongocxx_static)
+    target_link_libraries(${project_name}-lib
+            PUBLIC mongo::mongocxx_static
+    )
+endif()
+
+## define path to swagger-ui res folder
+
+add_definitions(
+        -DOATPP_SWAGGER_RES_PATH="${oatpp-swagger_INCLUDE_DIRS}/../bin/oatpp-swagger/res"
 )
 
-# Set linker options
-target_link_options(my-rest-api PRIVATE
-    -pthread
+#################################################################
+## add executables
+
+add_executable(${project_name}
+        src/main.cpp
 )
 
-# Set install target
-install(TARGETS my-rest-api DESTINATION bin)
+target_link_libraries(${project_name} ${project_name}-lib)
+add_dependencies(${project_name} ${project_name}-lib)
 
-# Add test executable
-add_executable(api-restbed-mongodb-cplusplus
-    test/test_main.cpp
-    src/api/error.cpp
-    src/api/request_handler.cpp
-    src/api/route.cpp
-    src/api/router.cpp
-    src/api/singleton_mongo_client.cpp
-    src/models/document.cpp
+add_executable(${project_name}-test
+        test/tests.cpp
 )
 
-# Add include directories for test executable
-target_include_directories(api-restbed-mongodb-cplusplus PRIVATE
-    include/api
-    include/models
-)
+target_link_libraries(${project_name}-test ${project_name}-lib)
+add_dependencies(${project_name}-test ${project_name}-lib)
 
-# Set compile options for test executable
-target_compile_options(api-restbed-mongodb-cplusplus PRIVATE
-    -Wall
-    -Wextra
-    -Wpedantic
-    --coverage
-)
-
-# Set linker options for test executable
-target_link_options(api-restbed-mongodb-cplusplus PRIVATE
-    -pthread
-    --coverage
-)
-
-# Link against restbed, libmongocxx, nlohmann_json, and RE2 libraries
-target_link_libraries(api-restbed-mongodb-cplusplus PRIVATE
-    ${restbed_LIBRARIES}
-    ${libmongocxx_LIBRARIES}
-    ${nlohmann_json_LIBRARIES}
-    ${RE2_LIBRARIES}
-)
+enable_testing()
+add_test(project-tests ${project_name}-test)
