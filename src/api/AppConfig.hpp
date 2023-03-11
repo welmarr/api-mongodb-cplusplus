@@ -1,8 +1,8 @@
-#ifndef API_MONGODB_CPLUSPLUS_SRC_API_APPCONFIG_HPP
-#define API_MONGODB_CPLUSPLUS_SRC_API_APPCONFIG_HPP
+#ifndef API_MONGODB_CPLUSPLUS_SRC_APPCONFIG_HPP
+#define API_MONGODB_CPLUSPLUS_SRC_APPCONFIG_HPP
 
 #include "./data/Connexion.hpp"
-#include "./utility/SwaggerDoc.hpp"
+#include "./config/SwaggerDoc.hpp"
 #include "./data/repository/UserRepository.hpp"
 
 #include "oatpp/web/server/HttpConnectionHandler.hpp"
@@ -36,7 +36,7 @@ public:
   /**
    *  Swagger component
    */
-  App::Utility::SwaggerDoc swaggerComponent;
+  App::Config::SwaggerDoc swaggerComponent;
 
   /**
    *  Create ConnectionProvider component which listens on the port

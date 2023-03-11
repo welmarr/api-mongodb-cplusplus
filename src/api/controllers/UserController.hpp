@@ -2,6 +2,7 @@
 #define API_MONGODB_CPLUSPLUS_SRC_API_CONTROLLERS_USERCONTROLLER_HPP
 
 #include "../data/dto/JsonUser.hpp"
+#include "../data/dto/JsonUserCreateOrUpdate.hpp"
 #include "../data/dto/JsonUserLogin.hpp"
 #include "../data/repository/UserRepository.hpp"
 
@@ -43,31 +44,31 @@ namespace App
             ENDPOINT_INFO(createUser)
             {
                 info->summary = "Create new User";
-                info->addConsumes<Object<App::Data::Json::JsonUser>>("application/json");
+                info->addConsumes<Object<App::Data::Json::JsonUserCreateOrUpdate>>("application/json");
                 info->addResponse<Object<App::Data::Json::JsonUser>>(Status::CODE_200, "application/json");
             }
-            ENDPOINT("POST", "demo/api/users", createUser,
-                     BODY_DTO(Object<App::Data::Json::JsonUser>, userDto))
+            ENDPOINT("POST", "moc-plusplus/api/users", createUser,
+                     BODY_DTO(Object<App::Data::Json::JsonUserCreateOrUpdate>, userDto))
             {
+                 oatpp::Object<App::Data::Json::JsonUser> out =  userRepository->create(userDto);
                 
-                printf("OK ----------");
-                
-                return createDtoResponse(Status::CODE_200, userRepository->create(userDto));
+                OATPP_ASSERT_HTTP(out, Status::CODE_409, "Email already used");
+                return createDtoResponse(Status::CODE_200, out);
             }
 
             ENDPOINT_INFO(putUser)
             {
                 // general
                 info->summary = "Update User by username";
-                info->addConsumes<Object<App::Data::Json::JsonUser>>("application/json");
+                info->addConsumes<Object<App::Data::Json::JsonUserCreateOrUpdate>>("application/json");
                 info->addResponse<Object<App::Data::Json::JsonUser>>(Status::CODE_200, "application/json");
                 info->addResponse<String>(Status::CODE_404, "text/plain");
                 // params specific
                 info->pathParams["username"].description = "username/login";
             }
-            ENDPOINT("PUT", "demo/api/users/{username}", putUser,
+            ENDPOINT("PUT", "moc-plusplus/api/users/{username}", putUser,
                      PATH(String, username),
-                     BODY_DTO(Object<App::Data::Json::JsonUser>, userDto))
+                     BODY_DTO(Object<App::Data::Json::JsonUserCreateOrUpdate>, userDto))
             {
                 userDto->username = username;
                 return createDtoResponse(Status::CODE_200, userRepository->update(userDto));
@@ -82,7 +83,7 @@ namespace App
                 // params specific
                 info->pathParams["username"].description = "username/login";
             }
-            ENDPOINT("GET", "demo/api/users/{username}", getUser,
+            ENDPOINT("GET", "moc-plusplus/api/users/{username}", getUser,
                      PATH(String, username))
             {
                 auto user = userRepository->getOne(username);
@@ -95,7 +96,7 @@ namespace App
                 info->summary = "get all stored users";
                 info->addResponse<List<Object<App::Data::Json::JsonUser>>>(Status::CODE_200, "application/json");
             }
-            ENDPOINT("GET", "demo/api/users", getAllUsers)
+            ENDPOINT("GET", "moc-plusplus/api/users", getAllUsers)
             {
                 return createDtoResponse(Status::CODE_200, userRepository->getAll());
             }
@@ -109,7 +110,7 @@ namespace App
                 // params specific
                 info->pathParams["username"].description = "username/login";
             }
-            ENDPOINT("DELETE", "demo/api/users/{username}", deleteUser,
+            ENDPOINT("DELETE", "moc-plusplus/api/users/{username}", deleteUser,
                      PATH(String, username))
             {
                 bool success = userRepository->deleteOne(username);

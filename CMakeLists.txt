@@ -14,10 +14,11 @@ add_library(${project_name}-lib
         src/api/data/dto/JsonUserLogin.hpp
         src/api/data/repository/UserRepository.cpp
         src/api/data/repository/UserRepository.hpp
-        src/api/utility/SwaggerDoc.hpp
-        src/api/utility/UUID.hpp
+        src/api/config/SwaggerDoc.hpp
         src/api/controllers/UserController.hpp
-        src/api/AppConfig.hpp)
+        src/api/AppConfig.hpp
+        src/utility/UUID.hpp
+        src/utility/Time.hpp)
 
 ###################################################################
 # Find mongocxx
@@ -48,6 +49,10 @@ target_link_libraries(${project_name}-lib
         PUBLIC oatpp::oatpp
         PUBLIC oatpp::oatpp-swagger
         PUBLIC oatpp::oatpp-mongo
+)
+
+target_link_libraries(${project_name}-lib
+        PUBLIC bcrypt
 )
 
 if (TARGET mongo::mongocxx_shared)

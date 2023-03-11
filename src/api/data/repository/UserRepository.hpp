@@ -4,6 +4,7 @@
 #include "../Connexion.hpp"
 
 #include "../dto/JsonUser.hpp"
+#include "../dto/JsonUserCreateOrUpdate.hpp"
 #include "../model/User.hpp"
 
 #include "oatpp-mongo/bson/mapping/ObjectMapper.hpp"
@@ -25,14 +26,16 @@ namespace App
             {
             private:
                 oatpp::Object<App::Data::Database::Model::User> userFromJson(const oatpp::Object<App::Data::Json::JsonUser> &dto);
+                oatpp::Object<App::Data::Database::Model::User> userFromCreationOrUpdatingJson(const oatpp::Object<App::Data::Json::JsonUserCreateOrUpdate> &dto);
                 oatpp::Object<App::Data::Json::JsonUser> jsonFromUser(const oatpp::Object<App::Data::Database::Model::User> &user);
+                //oatpp::Object<App::Data::Json::JsonUser> jsonFromCreationOrUpdatingJson(const oatpp::Object<App::Data::Json::JsonUserCreateOrUpdate> &dto);
 
             public:
                 UserRepository(const std::string &cName);
                 bool deleteOne(const oatpp::String &username);
 
-                oatpp::Object<App::Data::Json::JsonUser> create(const oatpp::Object<App::Data::Json::JsonUser> &userDto);
-                oatpp::Object<App::Data::Json::JsonUser> update(const oatpp::Object<App::Data::Json::JsonUser> &userDto);
+                oatpp::Object<App::Data::Json::JsonUser> create(const oatpp::Object<App::Data::Json::JsonUserCreateOrUpdate> &userCreateDta);
+                oatpp::Object<App::Data::Json::JsonUser> update(const oatpp::Object<App::Data::Json::JsonUserCreateOrUpdate> &userUpdateDta);
 
                 oatpp::Object<App::Data::Json::JsonUser> getOne(const oatpp::String &username);
                 oatpp::List<oatpp::Object<App::Data::Json::JsonUser>> getAll();

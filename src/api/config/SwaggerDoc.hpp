@@ -1,6 +1,6 @@
 
-#ifndef API_MONGODB_CPLUSPLUS_SRC_API_UTILITY_SWAGGERDOC_HPP
-#define API_MONGODB_CPLUSPLUS_SRC_API_UTILITY_SWAGGERDOC_HPP
+#ifndef API_MONGODB_CPLUSPLUS_SRC_API_CONFIG_SWAGGERDOC_HPP
+#define API_MONGODB_CPLUSPLUS_SRC_API_CONFIG_SWAGGERDOC_HPP
 
 #include "oatpp-swagger/Model.hpp"
 #include "oatpp-swagger/Resources.hpp"
@@ -8,7 +8,7 @@
 
 namespace App
 {
-    namespace Utility
+    namespace Config
     {
 
         /**
@@ -33,7 +33,7 @@ namespace App
                      .setContactName("Mr. Porridge")
                      .setContactUrl("https://oatpp.io/")
 
-                     .addServer("http://172.24.208.1:8000", "server on localhost");
+                     .addServer("http://172.27.222.31:8000", "server on localhost");
 
                  return builder.build(); }());
 
