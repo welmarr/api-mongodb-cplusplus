@@ -74,11 +74,6 @@ namespace App
 
             oatpp::Object<App::Data::Json::JsonUser> UserRepository::create(const oatpp::Object<App::Data::Json::JsonUserCreateOrUpdate> &userDto)
             {
-
-                std::cout << "Log : "
-                          << "UserRepository::create"
-                          << " [" << connexxion->getDatabaseName() << " : " << collectionName << "]" << std::endl;
-
                 auto connacquire = connexxion->getPool()->acquire();
                 auto collection = (*connacquire)[connexxion->getDatabaseName()][collectionName];
                 auto result = collection.find_one(connexxion->createMongoDocument(oatpp::Fields<oatpp::String>({{"username", userDto->username}})));
@@ -89,7 +84,7 @@ namespace App
                 }
 
                 oatpp::Object<App::Data::Database::Model::User> user = userFromCreationOrUpdatingJson(userDto);
-                
+
                 collection.insert_one(connexxion->createMongoDocument(user));
 
                 return jsonFromUser(user);
@@ -120,7 +115,21 @@ namespace App
 
             oatpp::List<oatpp::Object<App::Data::Json::JsonUser>> UserRepository::getAll()
             {
-                return oatpp::List<oatpp::Object<App::Data::Json::JsonUser>>();
+                auto connacquire = connexxion->getPool()->acquire();
+                auto collection = (*connacquire)[connexxion->getDatabaseName()][collectionName];
+
+                auto cursor = collection.find(connexxion->createMongoDocument(oatpp::Fields<oatpp::String>({})));
+
+                oatpp::List<oatpp::Object<App::Data::Json::JsonUser>> list({});
+
+                for (auto view : cursor)
+                {
+                    auto bson = oatpp::String((const char *)view.data(), view.length());
+                    auto user = (connexxion->getObjectMapper()).readFromString<oatpp::Object<App::Data::Database::Model::User>>(bson);
+                    list->push_back(jsonFromUser(user));
+                }
+
+                return list;
             }
         }
     }

@@ -7,13 +7,16 @@ namespace App
 {
     namespace Config
     {
-        class AuthenticateObject : public oatpp::web::server::handler::AuthorizationObject
+        namespace Auth
         {
-        public:
-            oatpp::String user;
-            oatpp::String password;
-            oatpp::String token;
-        };
+            class AuthenticateObject : public oatpp::web::server::handler::AuthorizationObject
+            {
+            public:
+                oatpp::String user;
+                oatpp::String password;
+                oatpp::String token;
+            };
+        }
     }
 }
 

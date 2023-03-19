@@ -33,7 +33,7 @@ namespace App
                      .setContactName("Mr. Porridge")
                      .setContactUrl("https://oatpp.io/")
 
-                     .addServer("http://172.27.222.31:8000", "server on localhost");
+                     .addServer("http://172.27.218.204:8000", "server on localhost");
 
                  return builder.build(); }());
 

@@ -5,6 +5,7 @@
 #include "../data/dto/JsonUserCreateOrUpdate.hpp"
 #include "../data/dto/JsonUserLogin.hpp"
 #include "../data/repository/UserRepository.hpp"
+#include "../data/dto/JsonReponse.hpp"
 
 #include "oatpp-swagger/Types.hpp"
 
@@ -16,17 +17,21 @@
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
 
+#include "oatpp/core/utils/ConversionUtils.hpp"
+#include "../config/Auth/AuthenticateHandler.hpp"
+#include "../config/Auth/AuthenticateObject.hpp"
+
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
 namespace App
 {
     namespace Controller
     {
-
         class UserController : public oatpp::web::server::api::ApiController
         {
         private:
             OATPP_COMPONENT(std::shared_ptr<App::Data::Database::UserRepository>, userRepository);
+            std::shared_ptr<AuthorizationHandler> m_authHandler = std::make_shared<App::Config::Auth::AuthenticateHandler>();
 
         public:
             UserController(const std::shared_ptr<ObjectMapper> &objectMapper)
@@ -41,19 +46,36 @@ namespace App
                 return std::make_shared<UserController>(objectMapper);
             }
 
+        
+
             ENDPOINT_INFO(createUser)
             {
                 info->summary = "Create new User";
                 info->addConsumes<Object<App::Data::Json::JsonUserCreateOrUpdate>>("application/json");
-                info->addResponse<Object<App::Data::Json::JsonUser>>(Status::CODE_200, "application/json");
+                info->addResponse<Object<App::Data::Json::JsonReponse>>(Status::CODE_200, "application/json");
             }
             ENDPOINT("POST", "moc-plusplus/api/users", createUser,
                      BODY_DTO(Object<App::Data::Json::JsonUserCreateOrUpdate>, userDto))
             {
-                 oatpp::Object<App::Data::Json::JsonUser> out =  userRepository->create(userDto);
-                
-                OATPP_ASSERT_HTTP(out, Status::CODE_409, "Email already used");
-                return createDtoResponse(Status::CODE_200, out);
+
+                auto out = App::Data::Json::JsonReponse::createShared();
+                try
+                {
+
+                    oatpp::Object<App::Data::Json::JsonUser> data = userRepository->create(userDto);
+                    out->data = data;
+                    out->status = (data ? Status::CODE_200.description : Status::CODE_409.description);
+                    out->msg = (data ? "" : "Email already used");
+
+                    return createDtoResponse(data ? Status::CODE_200 : Status::CODE_409, out);
+                }
+                catch (const std::exception &e)
+                {
+                    out->msg = e.what();
+                    out->status = Status::CODE_500.description;
+
+                    return createDtoResponse(Status::CODE_500, out);
+                }
             }
 
             ENDPOINT_INFO(putUser)
@@ -78,7 +100,7 @@ namespace App
             {
                 // general
                 info->summary = "Get one User by username";
-                info->addResponse<Object<App::Data::Json::JsonUser>>(Status::CODE_200, "application/json");
+                info->addResponse<Object<App::Data::Json::JsonReponse>>(Status::CODE_200, "application/json");
                 info->addResponse<String>(Status::CODE_404, "text/plain");
                 // params specific
                 info->pathParams["username"].description = "username/login";
@@ -86,19 +108,50 @@ namespace App
             ENDPOINT("GET", "moc-plusplus/api/users/{username}", getUser,
                      PATH(String, username))
             {
-                auto user = userRepository->getOne(username);
-                OATPP_ASSERT_HTTP(user, Status::CODE_404, "User not found");
-                return createDtoResponse(Status::CODE_200, user);
+                auto out = App::Data::Json::JsonReponse::createShared();
+                try
+                {
+
+                    oatpp::Object<App::Data::Json::JsonUser> data = userRepository->getOne(username);
+                    out->data = data;
+                    out->status = (data ? Status::CODE_200.description : Status::CODE_404.description);
+                    out->msg = (data ? "" : "User not found");
+
+                    return createDtoResponse(data ? Status::CODE_200 : Status::CODE_404, out);
+                }
+                catch (const std::exception &e)
+                {
+                    out->msg = e.what();
+                    out->status = Status::CODE_500.description;
+
+                    return createDtoResponse(Status::CODE_500, out);
+                }
             }
 
             ENDPOINT_INFO(getAllUsers)
             {
                 info->summary = "get all stored users";
-                info->addResponse<List<Object<App::Data::Json::JsonUser>>>(Status::CODE_200, "application/json");
+                info->addResponse<Object<App::Data::Json::JsonReponse>>(Status::CODE_200, "application/json");
             }
             ENDPOINT("GET", "moc-plusplus/api/users", getAllUsers)
             {
-                return createDtoResponse(Status::CODE_200, userRepository->getAll());
+                auto out = App::Data::Json::JsonReponse::createShared();
+                try
+                {
+
+                    oatpp::List<oatpp::Object<App::Data::Json::JsonUser>> data = userRepository->getAll();
+                    out->data = data;
+                    out->status = (Status::CODE_200.description);
+
+                    return createDtoResponse(Status::CODE_200, out);
+                }
+                catch (const std::exception &e)
+                {
+                    out->msg = e.what();
+                    out->status = Status::CODE_500.description;
+
+                    return createDtoResponse(Status::CODE_500, out);
+                }
             }
 
             ENDPOINT_INFO(deleteUser)
@@ -113,9 +166,23 @@ namespace App
             ENDPOINT("DELETE", "moc-plusplus/api/users/{username}", deleteUser,
                      PATH(String, username))
             {
-                bool success = userRepository->deleteOne(username);
-                OATPP_ASSERT_HTTP(success, Status::CODE_500, "User not deleted. Perhaps no such User in the Database");
-                return createResponse(Status::CODE_200, "User successfully deleted");
+                
+                auto out = App::Data::Json::JsonReponse::createShared();
+                try
+                {
+                    bool success = userRepository->deleteOne(username);
+                    out->status = (success ? Status::CODE_500.description : Status::CODE_200.description);
+                    out->msg = (success ? "User not deleted. Perhaps no such User in the Database" : "User successfully deleted");
+
+                    return createDtoResponse(Status::CODE_200, out);
+                }
+                catch (const std::exception &e)
+                {
+                    out->msg = e.what();
+                    out->status = Status::CODE_500.description;
+
+                    return createDtoResponse(Status::CODE_500, out);
+                }
             }
         };
 
